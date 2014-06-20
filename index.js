@@ -1,10 +1,10 @@
 'use strict';
 
 var Q = require('q'),
-	lock = require('./lock');
+	lock = require('./lib/lock');
 
 function testLock(i, max) {
-	lock(function(done) {
+	lock('test').when(function(done) {
 		setTimeout(function() {
 			process.stdout.write(i.toString() + (i !== max ? '-' : '\n\r'));
 			done();
