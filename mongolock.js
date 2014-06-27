@@ -1,7 +1,5 @@
 'use strict';
 
-'use strict';
-
 var cluster = require('cluster');
 
 if (cluster.isMaster) {
@@ -27,18 +25,16 @@ if (cluster.isMaster) {
 	var lock = require('./lib/mongolock'),
 		db = lock('mongodb://localhost/test'),
 		processArray = function(array, func, callback) {
-			var length = array.length,
-				iterator = function(i) {
-					if (i >= length) {
+			for (var i = 0; i < array.length; i++) {
+				(function(idx) {
+					db.lock('test').when(function(done) {
+						func(array[idx]);
+						done();
+					}).complete(function() {
 						callback();
-					} else {
-						db.lock('test', function(done) {
-							func(array[i]);
-							done(iterator.bind(this,i+1));
-						});
-					}
-				};
-			iterator(0);
+					});
+				}(i));
+			};
 		};
 
 	processArray([1,2,3], function(v) { 
@@ -48,4 +44,6 @@ if (cluster.isMaster) {
 		process.exit();
 	})
 }
+
+
 
